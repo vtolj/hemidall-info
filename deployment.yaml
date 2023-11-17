@@ -1,0 +1,63 @@
+metadata:
+  name: hemidall-info
+  namespace: hemidall-stackit
+spec:
+  selector:
+    app: hemidall-info
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  loadBalancerIP: 192.168.0.177
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hemidall-stackit-sa
+  namespace: hemidall-stackit
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hemidall-info
+  namespace: hemidall-stackit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hemidall-info
+  template:
+    metadata:
+      name: hemidall-info
+      labels:
+        app: hemidall-info
+    spec:
+      containers:
+        - name: hemidall-info
+          image: inquisitor1337/hemidall-stackit1
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: POD_SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.serviceAccountName
+      serviceAccountName: hemidall-stackit-sa
